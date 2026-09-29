@@ -4,6 +4,7 @@ from django.conf import settings
 
 class Photo(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='photos')
+    caption = models.CharField(max_length=255, blank=True)
     image = models.ImageField(upload_to='photos/%Y/%m/%d/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
