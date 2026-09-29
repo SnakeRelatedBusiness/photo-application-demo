@@ -10,4 +10,4 @@ def get_global_feed(limit=50):
     """
     return Photo.objects.select_related('user').annotate(
         total_likes=Count('likes')
-    ).order_by('-created_at')[:limit]
+    ).order_by('-uploaded_at')[:limit]

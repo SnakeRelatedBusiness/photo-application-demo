@@ -15,8 +15,22 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
+from photos.views import PhotoUploadView, PhotoDetailView, PhotoDeleteView
+from interactions.views import ToggleLikeView
+from feed.views import GlobalFeedView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-]
+
+    path('api-auth/', include('rest_framework.urls')),
+
+    path('api/photos/upload/', PhotoUploadView.as_view(), name='photo-upload'),
+    path('api/photos/<int:pk>/', PhotoDetailView.as_view(), name='photo-detail'),
+    path('api/photos/<int:photo_id>/like/', ToggleLikeView.as_view(), name='toggle-like'),
+    path('api/photos/<int:pk>/delete/', PhotoDeleteView.as_view(), name='photo-delete'),
+    path('api/feed/', GlobalFeedView.as_view(), name='global-feed'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
