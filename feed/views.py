@@ -11,3 +11,6 @@ class GlobalFeedView(APIView):
         serializer = FeedItemSerializer(feed_data, many=True, context={'request': request})
         return Response(serializer.data)
 
+class FeedTemplateView(APIView):
+    def get(self, request):
+        return render(request, 'feed/index.html')

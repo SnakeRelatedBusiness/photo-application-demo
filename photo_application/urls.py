@@ -19,14 +19,17 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from photos.views import PhotoUploadView, PhotoDetailView, PhotoDeleteView
+from photos.views import PhotoUploadView, PhotoDetailView, PhotoTemplateView, PhotoDeleteView
 from interactions.views import ToggleLikeView
-from feed.views import GlobalFeedView
+from feed.views import GlobalFeedView, FeedTemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api-auth/', include('rest_framework.urls')),
+
+    path('', FeedTemplateView.as_view(), name='feed-home'),
+    path('photos/<int:photo_id>/', PhotoTemplateView.as_view(), name='feed-home'),
 
     path('api/photos/upload/', PhotoUploadView.as_view(), name='photo-upload'),
     path('api/photos/<int:pk>/', PhotoDetailView.as_view(), name='photo-detail'),

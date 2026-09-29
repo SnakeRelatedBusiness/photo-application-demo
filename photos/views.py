@@ -19,6 +19,10 @@ class PhotoDetailView(generics.RetrieveAPIView):
     serializer_class = PhotoSerializer
     permission_classes = [IsAuthenticated]
 
+class PhotoTemplateView(APIView):
+    def get(self, request, photo_id):
+        return render(request, 'photo/photo.html', {'current_user_id': request.user.id if request.user.is_authenticated else None})
+
 class PhotoDeleteView(generics.DestroyAPIView):
     serializer_class = PhotoSerializer
 
