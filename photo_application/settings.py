@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -82,14 +83,15 @@ WSGI_APPLICATION = 'photo_application.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+load_dotenv()
 DATABASES = {
     'default': {
        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'photo_app_db',
-        'USER': 'photo_admin',
-        'PASSWORD': 'secure_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ['DB_NAME'],
+        'USER':  os.environ['DB_USERNAME'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
+        'HOST': os.environ['DB_HOST'],
+        'PORT': os.environ['DB_PORT'],
     }
 }
 
