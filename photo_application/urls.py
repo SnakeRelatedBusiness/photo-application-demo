@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 from photos.views import PhotoUploadView, PhotoDetailView, PhotoTemplateView, PhotoDeleteView
 from interactions.views import ToggleLikeView
 from feed.views import GlobalFeedView, FeedTemplateView
+from accounts.views import CurrentUserView, LoginAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,5 +36,7 @@ urlpatterns = [
     path('api/photos/<int:pk>/', PhotoDetailView.as_view(), name='photo-detail'),
     path('api/photos/<int:photo_id>/like/', ToggleLikeView.as_view(), name='toggle-like'),
     path('api/photos/<int:pk>/delete/', PhotoDeleteView.as_view(), name='photo-delete'),
+    path('api/auth/login/', LoginAPIView.as_view(), name='api-login'),
+    path('api/auth/me/', CurrentUserView.as_view(), name='current-user'),
     path('api/feed/', GlobalFeedView.as_view(), name='global-feed'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
