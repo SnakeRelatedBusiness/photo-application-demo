@@ -2,124 +2,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Photo</title>
-
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script type="module" src="/static/js/photo.js" defer></script>
 </head>
 
 <body>
-    <section>
-        <div id="photo-container">Loading image...</div>
-    </section>
-
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-
-            return cookieValue;
-        }
-
-        function createDeleteButton(id) {
-
-        }
-
-        const csrftoken = getCookie('csrftoken')
-
-        async function loadPhoto() {
-            try {
-                const container = document.getElementById('photo-container');
-                container.innerHTML = '';
-                const currentUserId = {{ current_user_id|default:"null" }};
-
-                const pattern = new URLPattern({ pathname: '/photos/:id/' });
-                const match = pattern.exec(window.location.href);
-                const photoId = match?.pathname.groups.id;
-                if (!photoId) {
-                    container.innerHTML = '<p>Invalid Photo ID.</p>';
-                    return;
-                }
-
-                const response = await fetch(`/api/photos/${photoId}/`);
-
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        container.innerHTML = '<p>Photo not found.</p>';
-                    } else {
-                        container.innerHTML = '<p>Error loading photo.</p>';
-                    }
-                    return;
-                }
-
-                const photo = await response.json();
-                console.log(photo)
-
-                let deleteButtonHtml = '';
-                    if (currentUserId && photo.user_id === currentUserId) {
-                        deleteButtonHtml = `<button onclick="deletePhoto(${photo.id})" style="color: red; margin-left: 10px;">Delete 🗑️</button>`;
-                }
-
-                let dateStr = ''
-                if (photo.uploaded_at){
-                    dateStr = new Date(photo.uploaded_at).toLocaleString("en-US")
-                }
-
-                container.innerHTML = `
-                    <h1>${photo.title || 'Untitled'}</h1>
-                    <p>Uploaded by: <strong>${photo.author}</strong></p>
-                    <img src="${photo.image}" alt="${photo.title}" width="500"><br>
-                    </a>
-                    <p>Likes: ${photo.total_likes}</p>
-                    <p><small>Uploaded at: ${dateStr} </small></p> 
-                    <button onclick="toggleLike(${photo.id})">Like ❤️</button>
-                    ${deleteButtonHtml}`;
-            } catch (error) {
-                console.error('Error loading photo:', error);
-            }
-        }
-
-        async function toggleLike(photoId) {
-            const response = await fetch(`/api/photos/${photoId}/like/`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken 
-                }
-            });
-
-            if (response.ok) {
-                loadPhoto(); // Simple way to refresh like counts
-            } else {
-                alert('Action failed. Ensure you are logged in via /admin/ or /api-auth/ login.');
-            }
-        }
-
-        async function deletePhoto(photoId) {
-            const confirmed = confirm("Are you sure you want to delete this photo?")
-            if (!confirmed) return;
-
-            const response = await fetch (`/api/photos/${photoId}/delete/`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRFTOKEN': csrftoken
-                }
-            });
-
-            if (response.ok) {
-                window.location.href = '/';
-            } else {
-                alert('Failed to delete photo')
-            }
-        }
-
-        loadPhoto();
-    </script>
+    <header>
+        <section  id="nav-container", class="nav-section">
+            <nav style="margin-bottom: 20px">
+                <a href="/" style="text-decoration: none; color: #3b82f6; font-weight: 600;">← Back to Feed</a>
+            </nav>
+        </section>
+        <section id="auth-container" class="auth-section">
+            <form id="login-form" class="hidden form-group">
+                <h2>Sign In</h2>
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <button type="submit">Log In</button>
+            </form>
+        </section>
+    </header>
+    <main>
+        <section aria-label="Photo Detail">
+            <div id="photo-container"></div>
+        </section>
+    </main>
 <body>
 </html>
