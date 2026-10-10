@@ -167,11 +167,14 @@ MAILERS = {
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Local Redis server, database index 1
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
 
-# Tell Django to store sessions in the cache (local memory) instead of the database
+# Reroute session storage to the Redis cache
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
