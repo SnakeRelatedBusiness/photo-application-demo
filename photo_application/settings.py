@@ -165,3 +165,13 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# Tell Django to store sessions in the cache (local memory) instead of the database
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
