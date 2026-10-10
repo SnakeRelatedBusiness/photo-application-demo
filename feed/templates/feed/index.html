@@ -2,131 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Photo Application</title>
+    <title>Distributed Photo Platform</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script type="module" src="/static/js/app.js" defer></script>
 </head>
 <body>
-    <h1>Photo Application</h1>
+    <header>
+        <h1>Photo Feed</h1>
 
-    <!-- Upload Section -->
-    <section>
-        <h2>Upload a Photo</h2>
-        <form id="upload-form">
-            <div>
-                <label for="title">Caption:</label>
-                <input type="text" id="caption" name="caption" required>
+        <section id="auth-container" class="auth-section">
+            <div id="welcome-section" class="hidden">
+                <p id="welcome-message" class="fw-bold"></p>
             </div>
-            <div>
-                <label for="image">Image:</label>
+
+            <form id="login-form" class="hidden form-group">
+                <h2>Sign In</h2>
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <button type="submit">Log In</button>
+            </form>
+        </section>
+    </header>
+
+    <main>
+        <section id="upload-section" class="hidden form-group">
+            <h2>Upload a Photo</h2>
+            <form id="upload-form">
+                <input type="text" id="caption" name="caption" placeholder="Photo caption" required>
                 <input type="file" id="image" name="image" accept="image/*" required>
+                <button type="submit">Upload</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <section aria-label="Photo Feed">
+            <div id="feed-container" class="feed-grid">
+                <p class="loading-state">Loading feed...</p>
             </div>
-            <button type="submit">Upload</button>
-        </form>
-    </section>
-
-    <hr>
-
-    <!-- Feed Section -->
-    <section>
-        <h2>Global Feed</h2>
-        <div id="feed-container">Loading feed...</div>
-    </section>
-
-    <script>
-        // Helper to get CSRF token for Django POST requests
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-        const csrftoken = getCookie('csrftoken');
-
-        // Fetch and render the feed
-        async function loadFeed() {
-            try {
-                const response = await fetch('/api/feed/');
-                const photos = await response.json();
-                const container = document.getElementById('feed-container');
-                
-                if (photos.length === 0) {
-                    container.innerHTML = '<p>No photos yet. Upload one above!</p>';
-                    return;
-                }
-
-                container.innerHTML = '';
-                photos.forEach(photo => {
-                    const photoDiv = document.createElement('div');
-                    photoDiv.style.border = '1px solid #ccc';
-                    photoDiv.style.margin = '10px 0';
-                    photoDiv.style.padding = '10px';
-
-                    console.log(photos)
-                    
-                    photoDiv.innerHTML = `
-                        <h3>${photo.caption || 'Untitled'}</h3>
-                        <p>By: <strong>${photo.author}</strong></p>
-                        <a href="/photos/${photo.id}/">
-                        <img src="${photo.image_url}" alt="${photo.caption}" width="300">
-                        </a>
-                        <br>
-                        <button onclick="toggleLike(${photo.id})">Like ❤️</button>
-                        <span id="likes-count-${photo.id}">${photo.total_likes}</span> likes
-                    `;
-                    container.appendChild(photoDiv);
-                });
-            } catch (error) {
-                console.error('Error loading feed:', error);
-            }
-        }
-
-        // Handle Photo Upload
-        document.getElementById('upload-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('caption', document.getElementById('caption').value);
-            formData.append('image', document.getElementById('image').files[0]);
-
-            const response = await fetch('/api/photos/upload/', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrftoken },
-                body: formData
-            });
-
-            if (response.ok) {
-                document.getElementById('upload-form').reset();
-                loadFeed(); // Refresh feed
-            } else {
-                alert('Upload failed. Are you logged in?');
-            }
-        });
-
-        // Handle Liking a Photo
-        async function toggleLike(photoId) {
-            const response = await fetch(`/api/photos/${photoId}/like/`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken 
-                }
-            });
-
-            if (response.ok) {
-                loadFeed(); // Simple way to refresh like counts
-            } else {
-                alert('Action failed. Ensure you are logged in via /admin/ or /api-auth/ login.');
-            }
-        }
-
-        // Initial load
-        loadFeed();
-    </script>
+        </section>
+    </main>
 </body>
 </html>
