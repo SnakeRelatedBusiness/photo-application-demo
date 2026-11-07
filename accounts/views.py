@@ -18,7 +18,7 @@ class LoginAPIView(APIView):
             login(request, user)
             return Response({"status": "success", "message": "Logged in successfully"})
 
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class CurrentUserView(APIView):
