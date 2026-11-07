@@ -3,14 +3,16 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .services import get_global_feed
+from .services import PhotoFeedService
 from .serializers import FeedItemSerializer
 
 class GlobalFeedView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        feed_data = get_global_feed()
+        tag_slug = request.query_params.get('tag')
+        feed_data = PhotoFeedService.get_feed(tag_slug)
+
         serializer = FeedItemSerializer(feed_data, many=True, context={'request': request})
         return Response(serializer.data)
 
