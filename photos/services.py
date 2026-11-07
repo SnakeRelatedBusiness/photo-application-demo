@@ -5,8 +5,7 @@ from .models import Tag, Photo
 class TagService():
     @staticmethod
     @transaction.atomic
-    def assgin_tags_to_photo(processed_tags : list[str], photo : Photo):
-        processed_tags = set(tag.strip().lower() for tag in processed_tags if tag.strip())
+    def assign_tags_to_photo(tags : list[str], photo : Photo):
 
         if not processed_tags:
             return
