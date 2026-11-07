@@ -14,7 +14,7 @@ const UI = {
 
 // --- State & Initialization ---
 async function initApp() {
-    bindEvents();
+    bindUploadEvent();
     await checkAuthAndRender();
 }
 
@@ -95,30 +95,31 @@ async function loadFeed() {
         });
     } catch (error) {
         UI.feedContainer.textContent = 'Failed to load feed.';
+        console.error(error)
     }
 }
 
 // --- Event Handlers ---
-function bindEvents() {
-    UI.loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        try {
-            const formData = new FormData(e.target);
-            await AuthService.login(Object.fromEntries(formData));
-            e.target.reset();
-            await checkAuthAndRender();
-        } catch (error) {
-            alert('Login failed. Please check your credentials.');
-        }
-    });
-
+function bindUploadEvent() {
     UI.uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
-            await PhotoService.upload(new FormData(e.target));
+            const formData = new FormData(e.target);
+
+            const tagString = formData.get('tags');
+            formData.delete('tags') // remove string from payload
+
+            if (tagString) {
+                const tagList = tagString.split(',').map(t => t.trim()).filter(Boolean);
+                console.log(tagList);
+                tagList.forEach(tag => formData.append('tags', tag));
+            }
+
+            await PhotoService.upload(formData);
             e.target.reset();
             await loadFeed();
         } catch (error) {
+            console.error(error)
             alert('Upload failed.');
         }
     });
