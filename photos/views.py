@@ -39,3 +39,7 @@ class PhotoDeleteView(generics.DestroyAPIView):
 
     def get_queryset(self):
         return Photo.objects.filter(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        PhotoFeedService.invalidate_feed_cache()
+        return super().perform_destroy(instance)
