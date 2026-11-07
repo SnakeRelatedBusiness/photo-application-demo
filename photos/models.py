@@ -22,7 +22,7 @@ class Photo(models.Model):
     image = models.ImageField(upload_to='photos/%Y/%m/%d/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    tags = models.ManyToManyField(Tag, blank=True, related_name='photos')
+    tags = models.ManyToManyField(Tag, blank=True, related_name='photo')
 
     class Meta:
         ordering = ['-uploaded_at']
