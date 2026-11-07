@@ -7,6 +7,11 @@ class TagService():
     @transaction.atomic
     def assign_tags_to_photo(tags : list[str], photo : Photo):
 
+        if not photo.pk:
+            raise ValueError("Photo must be saved to the database before assigning tags.")
+
+        processed_tags = set(tag.strip().lower() for tag in tags if tag.strip())
+
         if not processed_tags:
             return
 
