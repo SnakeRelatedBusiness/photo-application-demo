@@ -12,40 +12,26 @@ const UI = {
     uploadForm: document.getElementById('upload-form')
 };
 
-// --- State & Initialization ---
 async function initApp() {
     bindUploadEvent();
-    await checkAuthAndRender();
-}
 
-async function      checkAuthAndRender() {
-    try {
-        const user = await AuthService.checkStatus();
-        toggleAuthState(user);
 
-        if (user.is_authenticated) {
-            await loadFeed();
+    await initialiseAuth(UI.loginForm, async (user) => {
+        const isAuth = user.is_authenticated;
+
+        UI.loginForm.classList.toggle('hidden', isAuth);
+        UI.welcomeSection.classList.toggle('hidden', !isAuth);
+        UI.uploadSection.classList.toggle('hidden', !isAuth);
+
+        if (isAuth) {
+            UI.welcomeMessage.textContent = `Welcome back, ${user.username}!`;
+            await loadFeed(tagFromUrl)
         } else {
             UI.feedContainer.textContent = 'Please log in to view the feed.';
         }
-    } catch (error) {
-        console.error("Initialization failed:", error);
-    }
+    })
 }
 
-// --- UI Rendering ---
-function toggleAuthState(user) {
-    const isAuth = user.is_authenticated;
-
-    UI.loginForm.classList.toggle('hidden', isAuth);
-    UI.welcomeSection.classList.toggle('hidden', !isAuth);
-    UI.uploadSection.classList.toggle('hidden', !isAuth);
-
-    if (isAuth) {
-        // Safe injection via textContent
-        UI.welcomeMessage.textContent = `Welcome back, ${user.username}!`;
-    }
-}
 
 async function loadFeed() {
     UI.feedContainer.textContent = 'Loading...';
@@ -73,24 +59,9 @@ async function loadFeed() {
             img.alt = photo.caption;
             imgLink.appendChild(img);
 
-            const controls = document.createElement('div');
-            const isLiked = photo.is_liked_by_user;
+            const controls = createLikeControls(photo);
 
-            const btnClass = isLiked ? 'liked-active' : '';
-            const btnText = isLiked ? 'Unlike 💔' : 'Like ❤️';
-            const likeBtn = document.createElement('button');
-            likeBtn.textContent = btnText;
-            if (btnClass) likeBtn.classList.add(btnClass);
 
-            likeBtn.addEventListener('click', (e) => handleLike(photo.id, e.currentTarget));
-
-            const likeCount = document.createElement('span');
-            likeCount.classList.add('likes-count');
-            likeCount.id = `likes-count-${photo.id}`; // Add this missing line
-            likeCount.textContent = `  ${photo.total_likes} likes`;
-
-            controls.append(likeBtn, likeCount);
-            card.append(caption, author, imgLink, controls);
             UI.feedContainer.appendChild(card);
         });
     } catch (error) {

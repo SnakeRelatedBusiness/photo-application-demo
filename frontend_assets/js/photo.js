@@ -14,7 +14,7 @@ async function initApp() {
     await checkAuthAndRender();
 }
 
-async function      checkAuthAndRender() {
+async function checkAuthAndRender() {
     try {
         const user = await AuthService.checkStatus();
         toggleAuthState(user);
@@ -84,22 +84,7 @@ function renderPhoto(photo, user) {
     dateText.appendChild(smallDate);
     dateText.style.marginBottom = '15px';
 
-    const controls = document.createElement('div');
-    controls.style.display = 'flex';
-    controls.style.gap = '15px';
-    controls.style.alignItems = 'center';
-
-    const isLiked = photo.is_liked_by_user;
-    const likeBtn = document.createElement('button');
-    likeBtn.textContent = isLiked ? 'Unlike 💔' : 'Like ❤️';
-    if (isLiked) likeBtn.classList.add('liked-active');
-
-    const likeCount = document.createElement('span');
-    likeCount.id = `likes-count-${photo.id}`;
-    likeCount.textContent = `${photo.total_likes} likes`;
-
-    likeBtn.addEventListener('click', (e) => handleLike(photo.id, e.currentTarget));
-    controls.append(likeBtn, likeCount);
+    const controls = createLikeControls(photo)
 
     if (user.is_authenticated && photo.user_id === user.id) {
         const deleteBtn = document.createElement('button');
@@ -111,8 +96,6 @@ function renderPhoto(photo, user) {
 
     UI.photoContainer.append(caption, author, img, dateText, controls);
 }
-
-
 
 async function handleDelete(photoId) {
     if (!confirm("Are you sure you want to delete this photo?")) return;
