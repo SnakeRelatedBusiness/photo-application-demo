@@ -35,7 +35,7 @@ export const AuthService = {
 };
 
 export const PhotoService = {
-    getFeed: () => fetchAPI('/api/feed/'),
+    getFeed: (query = '') => fetchAPI(`/api/feed/${query}`),
     getPhoto: (id) => fetchAPI(`/api/photos/${id}/`),
     deletePhoto: (id) => fetchAPI(`/api/photos/${id}/delete/`, {
         method: 'DELETE'

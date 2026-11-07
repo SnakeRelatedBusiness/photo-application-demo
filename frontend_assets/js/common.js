@@ -63,7 +63,7 @@ export async function handleLike(photoId, btnElement) {
     }
 }
 
-export function createLikeButton(photo) {
+export function createLikeControls(photo) {
     const controls = document.createElement('div');
     controls.style.display = 'flex';
     controls.style.gap = '15px';
@@ -86,4 +86,21 @@ export function createLikeButton(photo) {
     controls.append(likeBtn, likeCount);
 
     return controls;
+}
+
+export function createTagList(tags) {
+    const tagsContainer = document.createElement('div');
+    tagsContainer.className = 'tags-container'
+
+    if (tags && tags.length > 0) {
+        tags.forEach(tag => {
+            const tagBadge = document.createElement('a');
+            tagBadge.className = 'tag-badge';
+            tagBadge.textContent = `#${tag.name}`;
+            tagBadge.href = `/?tag=${tag.slug}`;
+            tagsContainer.append(tagBadge)
+        })
+    }
+
+    return tagsContainer
 }

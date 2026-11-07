@@ -85,6 +85,10 @@ button:hover {
     background-color: #2563eb;
 }
 
+.delete-button {
+    background-color: #ef4444;
+}
+
 .likes-count {
     margin-left: 4px;
 }
@@ -131,4 +135,14 @@ button:hover {
 .loading-state {
     color: #94a3b8;
     font-style: italic;
+}
+
+.tag-badge {
+    background-color: #e2e8f0;
+    color: #2c3e50;
+    text-decoration: none;
+    padding: '4px 8px';
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin: 2px;
 }

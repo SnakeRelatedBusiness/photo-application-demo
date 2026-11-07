@@ -1,6 +1,6 @@
 // static/js/photo.js
 import { AuthService, PhotoService } from './api.js';
-import { handleLike } from './common.js';
+import { handleLike, createTagList, createLikeControls} from './common.js';
 
 // DOM Elements
 const UI = {
@@ -84,17 +84,18 @@ function renderPhoto(photo, user) {
     dateText.appendChild(smallDate);
     dateText.style.marginBottom = '15px';
 
+    const tagsContainer = createTagList(photo.tags)
     const controls = createLikeControls(photo)
 
     if (user.is_authenticated && photo.user_id === user.id) {
         const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-button'
         deleteBtn.textContent = 'Delete 🗑️';
-        deleteBtn.style.backgroundColor = '#ef4444'; // Red styling from CSS
         deleteBtn.addEventListener('click', () => handleDelete(photo.id));
         controls.appendChild(deleteBtn);
     }
 
-    UI.photoContainer.append(caption, author, img, dateText, controls);
+    UI.photoContainer.append(caption, author, img, tagsContainer, dateText, controls);
 }
 
 async function handleDelete(photoId) {
