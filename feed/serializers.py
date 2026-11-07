@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from photos.serializers import TagSerializer
 
 class FeedItemSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -10,6 +11,8 @@ class FeedItemSerializer(serializers.Serializer):
     uploaded_at = serializers.DateTimeField()
 
     is_liked_by_user = serializers.SerializerMethodField()
+    tags = TagSerializer(many=True, read_only=True)
+
 
     def get_is_liked_by_user(self, obj):
         request = self.context.get('request')
