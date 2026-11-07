@@ -1,6 +1,6 @@
 // static/js/app.js
-import { AuthService, PhotoService } from './api.js';
-import { handleLike } from './common.js';
+import { PhotoService } from './api.js';
+import { handleLike , createTagList, createLikeControls, initialiseAuth} from './common.js';
 
 // DOM Elements
 const UI = {
@@ -15,6 +15,8 @@ const UI = {
 async function initApp() {
     bindUploadEvent();
 
+    const params = new URLSearchParams(window.location.search);
+    const tagFromUrl = params.get('tag');
 
     await initialiseAuth(UI.loginForm, async (user) => {
         const isAuth = user.is_authenticated;
@@ -33,10 +35,12 @@ async function initApp() {
 }
 
 
-async function loadFeed() {
+async function loadFeed(tagFilter = null) {
+    const endPointQuery = tagFilter ? `?tag=${tagFilter}` : '';
     UI.feedContainer.textContent = 'Loading...';
+
     try {
-        const photos = await PhotoService.getFeed();
+        const photos = await PhotoService.getFeed(endPointQuery);
         UI.feedContainer.innerHTML = ''; // Clear loading text
 
         photos.forEach(photo => {
@@ -59,9 +63,11 @@ async function loadFeed() {
             img.alt = photo.caption;
             imgLink.appendChild(img);
 
+            const tagList = createTagList(photo.tags);
             const controls = createLikeControls(photo);
 
 
+            card.append(caption, author, imgLink, tagList, controls);
             UI.feedContainer.appendChild(card);
         });
     } catch (error) {
