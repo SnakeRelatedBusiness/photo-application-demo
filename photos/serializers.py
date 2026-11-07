@@ -1,15 +1,24 @@
 from rest_framework import serializers
-from .models import Photo
-from django.db.models import Count
+
+from .models import Photo, Tag
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id', 'name', 'slug']
+
 
 class PhotoSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='user.username')
     total_likes = serializers.IntegerField(source='likes.count', read_only=True)
     is_liked_by_user = serializers.SerializerMethodField()
 
+    tags = TagSerializer(many=True, read_only=True)
+
     class Meta:
         model = Photo
-        fields = ('id', 'user_id', 'author', 'image', 'caption', 'uploaded_at', 'total_likes', 'is_liked_by_user')
+        fields = ('id', 'user_id', 'author', 'image', 'caption', 'uploaded_at', 'total_likes', 'is_liked_by_user', 'tags')
         read_only_fields = ['user_id', 'author', 'uploaded_at']
 
     def get_is_liked_by_user(self, obj):
