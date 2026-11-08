@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-*xnj@x$_p-w&hq!d652k#ko!o_q!rlata3&&%qk%^a^*2_9_rq
 STANDALONE_MODE = os.environ.get('STANDALONE_MODE', 'False') == 'True'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    
+
     'accounts',
     'photos',
     'interactions',
@@ -206,3 +206,18 @@ else:
     # Reroute session storage to the Redis cache
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
     SESSION_CACHE_ALIAS = "default"
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
