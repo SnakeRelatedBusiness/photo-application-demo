@@ -6,6 +6,22 @@ This repo contains a photo-sharing application for demonstrative/learning purpos
 
 It runs as a multi-container Docker Compose stack, supporting multiple app replicas behind an nginx load balancer, PostgreSQL for data, Redis for caching, and S3-compatible object storage for photos.
 
+## Get Started
+
+**Requirements**: Docker
+
+```bash
+# 1. Clone repositories
+git clone <repository-url>
+cd <repository-folder>
+
+# 2. Create your .env file using .env.example and update passwords
+cp .env.example .env
+
+# 3. Build and start everything
+docker compose up -d --build
+```
+
 ## Architecture
 
 ```mermaid
@@ -39,19 +55,36 @@ flowchart LR
 | `minio` | `rustfs/rustfs` | S3-compatible photo storage (service name kept as `minio`) | API `:9000`, console `:9001` |
 | `createbucket` | `amazon/aws-cli` | One-shot job: creates the bucket and applies the read policy | No |
 
-## Get Started
+## Data Model
 
-**Requirements**: Docker
+```mermaid
+erDiagram
 
-```bash
-# 1. Clone repositories
-git clone <repository-url>
-cd <repository-folder>
-# 2. Create your .env file using .env.example and update passwords
-cp .env.example .env
+USER {
+	string username
+	string bio
+	hash password
+}
 
-# 3. Build and start everything
-docker compose up -d --build
+PHOTO {
+	file image
+	string caption
+	datetime uploaded_at
+}
+
+LIKE {
+	datetime liked_at
+}
+
+TAG {
+	string name
+	string slug
+}
+
+USER one to many PHOTO : uploads
+USER one to many LIKE : performs
+PHOTO one to many LIKE : receives
+TAG many to many PHOTO : has
 ```
 
 ## Access
