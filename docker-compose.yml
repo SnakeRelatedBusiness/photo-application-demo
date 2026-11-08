@@ -1,0 +1,151 @@
+x-app: &app
+  build: .
+  image: photo-app:latest
+  env_file:
+    - .env
+  networks:
+    - app_network
+
+services:
+  lb:
+    image: nginx:alpine
+    container_name: lb
+    ports:
+      - "8081:80"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_data:/app/staticfiles:ro
+    depends_on:
+      app:
+        condition: service_started
+    networks:
+      - app_network
+
+  migrate:
+    <<: *app
+    command:
+    # migrate models to database
+    # create static files in static_data volume
+    # create admin user with DJANGO_SUPERUSER_PASSWORD
+      - sh
+      - -c
+      - |
+        python manage.py migrate --noinput &&
+        python manage.py collectstatic --noinput &&
+        if [ -n "$${DJANGO_SUPERUSER_PASSWORD}" ]; then
+          python manage.py createsuperuser --noinput || echo "Superuser not created (it probably already exists)"
+        fi
+    volumes:
+      - static_data:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      createbucket:
+        condition: service_completed_successfully
+    restart: "no"
+
+  app:
+    <<: *app
+    command: gunicorn photo_application.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    expose:
+      - "8000"
+    volumes:
+      - static_data:/app/staticfiles
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    deploy:
+      replicas: 3
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d photodb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  minio:
+    image: rustfs/rustfs:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      RUSTFS_ACCESS_KEY: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
+      RUSTFS_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:9000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  createbucket:
+      image: amazon/aws-cli
+      depends_on:
+        minio:
+          condition: service_healthy
+      environment:
+        AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+        AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+        AWS_DEFAULT_REGION: us-east-1
+        MINIO_BUCKET: ${MINIO_BUCKET:-photo-app-media}
+      volumes:
+        - ./deploy/storage/bucket-policy.json:/policy.json:ro       # add bucket policy file to enable image serving
+      entrypoint: >
+        /bin/sh -c "
+        aws --endpoint-url http://minio:9000 s3api head-bucket --bucket $${MINIO_BUCKET} 2>/dev/null ||
+        aws --endpoint-url http://minio:9000 s3api create-bucket --bucket $${MINIO_BUCKET};
+        aws --endpoint-url http://minio:9000 s3api put-bucket-policy --bucket $${MINIO_BUCKET} --policy file:///policy.json"
+      networks:
+        - app_network
+      restart: "no"
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  static_data:
+
+networks:
+  app_network:
+    driver: bridge
