@@ -110,5 +110,22 @@ All configuration lives in `.env`, `.env.example` lists every variable with plac
 | `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_PASSWORD` | Admin account created automatically on first start |
 
 
+## Testing
 
+Running tests requires installing dependencies locally and running Photo Application in standalone mode (disable use of external database and caching)
 
+```bash
+# 1. Create virtual environment
+cd app
+python -m venv env
+.\env\Scripts\activate
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Enable standalone mode
+$env:STANDALONE_MODE="True"
+
+# 4. Run tests
+python manage.py test
+```
