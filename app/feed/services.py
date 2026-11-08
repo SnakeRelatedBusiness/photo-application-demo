@@ -44,5 +44,10 @@ class PhotoFeedService():
 
     @staticmethod
     def invalidate_feed_cache() -> None:
-        deleted = cache.delete_pattern(f"{FEED_CACHE_PREFIX}*")
-        logger.info("Feed cache invalidated, %s keys deleted", deleted)
+        if hasattr(cache, 'delete_pattern'):
+            deleted = cache.delete_pattern(f"{FEED_CACHE_PREFIX}*")
+            logger.info("Feed cache invalidated, %s keys deleted", deleted)
+        else:
+            # Fallback for LocMemCache during standalone mode
+            cache.clear()
+            logger.info("Feed cache cleared entirely (fallback for LocMemCache)")
