@@ -104,14 +104,18 @@ else:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
+
     # MinIO Connection Details
-    AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
-    AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+    AWS_ACCESS_KEY_ID = os.environ['MINIO_ROOT_USER']
+    AWS_SECRET_ACCESS_KEY = os.environ['MINIO_ROOT_PASSWORD']
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
     AWS_S3_ENDPOINT_URL = os.environ['AWS_S3_ENDPOINT_URL']
+    AWS_S3_CUSTOM_DOMAIN = os.environ['AWS_S3_CUSTOM_DOMAIN']
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_DEFAULT_ACL = None
-    AWS_QUERYSTRING_AUTH = True
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_URL_PROTOCOL = 'http:'
+    AWS_S3_ADDRESSING_STYLE = 'path'
 
 
 if STANDALONE_MODE:
@@ -125,9 +129,9 @@ else:
     DATABASES = {
         'default': {
         'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ['DB_NAME'],
-            'USER':  os.environ['DB_USERNAME'],
-            'PASSWORD': os.environ['DB_PASSWORD'],
+            'NAME': os.environ['POSTGRES_DB'],
+            'USER':  os.environ['POSTGRES_USER'],
+            'PASSWORD': os.environ['POSTGRES_PASSWORD'],
             'HOST': os.environ['DB_HOST'],
             'PORT': os.environ['DB_PORT'],
         }
@@ -197,7 +201,7 @@ else:
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://127.0.0.1:6379/1",  # Local Redis server, database index 1
+            "LOCATION": os.environ['REDIS_URL'],  # Local Redis server, database index 1
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             }
@@ -221,3 +225,5 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+CSRF_TRUSTED_ORIGINS = ["http://localhost:8081"]
