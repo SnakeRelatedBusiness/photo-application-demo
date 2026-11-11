@@ -25,24 +25,29 @@ docker compose up -d --build
 ## Architecture
 
 ```mermaid
-flowchart LR
-    B[Browser]
-    LB[nginx<br/>load balancer]
-    A1[Django + gunicorn<br/>replica 1]
-    A2[replica 2]
-    A3[replica 3]
-    DB[(PostgreSQL)]
-    R[(Redis<br/>feed cache)]
-    S[(Object storage<br/>RustFS, S3 API)]
+C4Container
+  title Level 2: Container Diagram - Photo Application
 
-    B -->|":8081"| LB
-    LB --> A1
-    LB --> A2
-    LB --> A3
-    A1 & A2 & A3 --> DB
-    A1 & A2 & A3 --> R
-    A1 & A2 & A3 -->|"uploads, inside Docker"| S
-    B -->|":9000, image downloads"| S
+  Person(user, "User", "Interacts with the platform via the browser.")
+
+  System_Boundary(c1, "Photo Application") {
+      Container(spa, "Frontend Application", "JS, HTML, CSS", "Provides UI for viewing and uploading photos.")
+      Container(lb, "Load Balancer", "Nginx", "Distributes load across backend instances.")
+      Container(api, "API", "Python, Django", "Stateless backend application, horizontally scalable.")
+
+      ContainerDb(db, "Database", "PostgreSQL", "Stores user accounts, photo metadata, tags, and likes.")
+      ContainerDb(cache, "Cache & Session Store", "Redis", "Centralized shared memory for session state and cached queries.")
+      ContainerDb(rustfs, "Object Storage", "RustFS", "S3-compatible storage for persistent image files.")
+  }
+
+  Rel(user, spa, "Views feed, uploads photos", "HTTPS")
+  Rel(spa, lb, "Makes API calls to", "JSON/HTTPS")
+  Rel(lb, api, "Routes requests to", "HTTP")
+
+  Rel(api, db, "Reads/Writes data", "TCP/SQL")
+  Rel(api, cache, "Reads/Writes sessions & feed cache", "TCP")
+  Rel(api, rustfs, "Uploads raw image files", "HTTP/S3 API")
+  Rel(spa, rustfs, "Fetches images directly", "HTTPS")
 ```
 
 | Service | Image | Purpose | Reachable from your machine |
@@ -52,7 +57,7 @@ flowchart LR
 | `migrate` | same image as `app` | One-shot job: migrations, `collectstatic`, superuser creation | No |
 | `db` | `postgres:15-alpine` | Application database | No |
 | `redis` | `redis:alpine` | Cache for the photo feed | No |
-| `minio` | `rustfs/rustfs` | S3-compatible photo storage (service name kept as `minio`) | API `:9000`, console `:9001` |
+| `rustfs` | `rustfs/rustfs` | S3-compatible photo storage | API `:9000`, console `:9001` |
 | `createbucket` | `amazon/aws-cli` | One-shot job: creates the bucket and applies the read policy | No |
 
 ## Data Model
