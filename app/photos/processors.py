@@ -1,6 +1,9 @@
+import io
 from abc import ABC, abstractmethod
 
 from django.db import transaction
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from PIL import Image
 
 from .upload_context import PhotoUploadContext
 from .services import TagService
@@ -37,6 +40,7 @@ class PhotoUploadPipeline:
         # Register the sequence of operations here.
         self.processors : list[AbstractPhotoProcessor] = [
             SaveProcessor(),
+            ThumbnailGeneratorProcessor(),
             TagAssignProcessor(),
             CacheInvalidationProcessor()
         ]
@@ -45,4 +49,37 @@ class PhotoUploadPipeline:
     def execute(self, context: PhotoUploadContext) -> PhotoUploadContext:
         for processor in self.processors:
             context = processor.process(context)
+        return context
+
+
+class ThumbnailGeneratorProcessor(AbstractPhotoProcessor):
+    THUMBNAIL_SIZE = (300, 300)
+
+    def process(self, context):
+        if not context.photo or not context.photo.image:
+            return context
+
+        with context.photo.image.open('rb') as f:
+            with Image.open(f) as img:
+                # convert RGBA to RBG for JPEG saving
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+
+                img.thumbnail(self.THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
+                thumbnail = io.BytesIO()
+                img.save(thumbnail, format='JPEG', quality=85)
+                thumbnail.seek(0)
+
+        thumbnail_filename = f"thumb_{context.photo.image.name.split('/')[-1]}"
+
+        thumb_file = InMemoryUploadedFile(
+            file=thumbnail,
+            field_name=None,
+            name=thumbnail_filename,
+            content_type='image/jpeg',
+            size=thumbnail.tell(),
+            charset=None
+        )
+
+        context.photo.thumbnail.save(thumbnail_filename, thumb_file, save=True)
         return context
