@@ -1,11 +1,13 @@
-from django.shortcuts import render
 
+from django.db.models import Count
+from django.shortcuts import render
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Photo
-from .serializers import PhotoSerializer
+from .serializers import PhotoSerializer, ProfileGridSerializer
 from .upload_context import PhotoUploadContext
 from feed.services import PhotoFeedService
 from .processors import PhotoUploadPipeline
@@ -46,3 +48,22 @@ class PhotoDeleteView(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         PhotoFeedService.invalidate_feed_cache()
         return super().perform_destroy(instance)
+
+
+class ProfileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        qs = Photo.objects.filter(user=request.user)\
+            .annotate(total_likes=Count('likes'))\
+            .order_by('-uploaded_at')
+
+        serializer = ProfileGridSerializer(qs, many=True)
+        return Response(serializer.data)
+
+
+class ProfileTemplateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return render(request, 'photo/profile.html')

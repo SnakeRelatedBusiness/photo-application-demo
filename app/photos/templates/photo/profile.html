@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script type="module" src="/static/js/profile.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <a href="/" style="text-decoration: none; font-weight: 600; font-size: 1.2rem;">Photo Application</a>
+
+            <a href="/profile/" id="nav-profile-link" class="hidden" style="text-decoration: none; font-weight: 600;">My Profile</a>
+        </nav>
+        <h1 id="page-title">Profile</h1>
+    </header>
+
+    <main>
+        <section aria-label="Profile Photo Grid">
+            <div id="profile-container">
+                <p class="loading-state">Loading your photos...</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
