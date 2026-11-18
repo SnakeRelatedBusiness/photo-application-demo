@@ -6,9 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Photo
 from .serializers import PhotoSerializer
-from .services import TagService
+from .upload_context import PhotoUploadContext
 from feed.services import PhotoFeedService
-
+from .processors import PhotoUploadPipeline
 
 class PhotoUploadView(generics.CreateAPIView):
     queryset = Photo.objects.all()
@@ -16,11 +16,14 @@ class PhotoUploadView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        tags = self.request.data.getlist('tags', [])
-        photo = serializer.save(user=self.request.user)
-        TagService.assign_tags_to_photo(tags, photo)
+        context = PhotoUploadContext(
+            user=self.request.user,
+            tags=self.request.data.getlist('tags', []),
+            serializer=serializer,
+        )
 
-        PhotoFeedService.invalidate_feed_cache()
+        pipeline = PhotoUploadPipeline()
+        pipeline.execute(context)
 
 
 class PhotoDetailView(generics.RetrieveAPIView):
