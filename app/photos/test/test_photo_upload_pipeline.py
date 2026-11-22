@@ -2,7 +2,7 @@ from django.test import TestCase
 from unittest.mock import MagicMock
 
 from photos.processors import PhotoUploadPipeline, AbstractPhotoProcessor
-from app.photos.upload_context import PhotoUploadContext
+from photos.upload_context import PhotoUploadContext
 
 
 class MockProcessor(AbstractPhotoProcessor):
