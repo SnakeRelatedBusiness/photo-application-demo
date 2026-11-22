@@ -4,13 +4,15 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Photo
 from .serializers import PhotoSerializer, ProfileGridSerializer
 from .upload_context import PhotoUploadContext
-from feed.services import PhotoFeedService
 from .processors import PhotoUploadPipeline
+from .exceptions import PhotoProcessingError
+from feed.services import PhotoFeedService
 
 class PhotoUploadView(generics.CreateAPIView):
     queryset = Photo.objects.all()
@@ -25,7 +27,14 @@ class PhotoUploadView(generics.CreateAPIView):
         )
 
         pipeline = PhotoUploadPipeline()
-        pipeline.execute(context)
+
+        try:
+            pipeline.execute(context)
+        except PhotoProcessingError as exc:
+            if context.photo and context.photo.image:
+                context.photo.image.delete(save=False)
+
+            raise ValidationError({"image": str(e)})
 
 
 class PhotoDetailView(generics.RetrieveAPIView):

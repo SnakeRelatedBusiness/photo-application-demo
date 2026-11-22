@@ -1,14 +1,17 @@
 import io
+import logging
 from abc import ABC, abstractmethod
 
 from django.db import transaction
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from .upload_context import PhotoUploadContext
 from .services import TagService
 from feed.services import PhotoFeedService
+from .exceptions import PhotoProcessingError
 
+logger = logging.getLogger(__name__)
 
 class AbstractPhotoProcessor(ABC):
     @abstractmethod
@@ -59,8 +62,12 @@ class ThumbnailGeneratorProcessor(AbstractPhotoProcessor):
         if not context.photo or not context.photo.image:
             return context
 
-        with context.photo.image.open('rb') as f:
-            with Image.open(f) as img:
+        try:
+            context.photo.image.seek(0)
+            image_bytes = context.photo.image.read()
+            image_stream = io.BytesIO(image_bytes)
+
+            with Image.open(image_stream) as img:
                 # convert RGBA to RBG for JPEG saving
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
@@ -69,6 +76,10 @@ class ThumbnailGeneratorProcessor(AbstractPhotoProcessor):
                 thumbnail = io.BytesIO()
                 img.save(thumbnail, format='JPEG', quality=85)
                 thumbnail.seek(0)
+
+        except (UnidentifiedImageError, OSError, IOError) as exc:
+            logger.exception(f"Thumbnail generation failed")
+            raise PhotoProcessingError("The uploaded file could not be processed as a valid image.")
 
         thumbnail_filename = f"thumb_{context.photo.image.name.split('/')[-1]}"
 
