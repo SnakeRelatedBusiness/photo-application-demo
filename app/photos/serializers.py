@@ -27,3 +27,9 @@ class PhotoSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.likes.filter(user=request.user).exists()
         return False
+
+class ProfileGridSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    image_url = serializers.ImageField(source='image', read_only=True)
+    thumbnail_url = serializers.ImageField(source='thumbnail', read_only=True)
+    total_likes = serializers.IntegerField(read_only=True)

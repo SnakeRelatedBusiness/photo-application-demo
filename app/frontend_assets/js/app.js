@@ -9,7 +9,8 @@ const UI = {
     uploadSection: document.getElementById('upload-section'),
     welcomeMessage: document.getElementById('welcome-message'),
     feedContainer: document.getElementById('feed-container'),
-    uploadForm: document.getElementById('upload-form')
+    uploadForm: document.getElementById('upload-form'),
+    profileLink: document.getElementById('nav-profile-link')
 };
 
 async function initApp() {
@@ -24,6 +25,8 @@ async function initApp() {
         UI.loginForm.classList.toggle('hidden', isAuth);
         UI.welcomeSection.classList.toggle('hidden', !isAuth);
         UI.uploadSection.classList.toggle('hidden', !isAuth);
+
+        if (UI.profileLink) UI.profileLink.classList.toggle('hidden', !isAuth);
 
         if (isAuth) {
             UI.welcomeMessage.textContent = `Welcome back, ${user.username}!`;

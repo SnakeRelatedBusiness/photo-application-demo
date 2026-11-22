@@ -117,7 +117,8 @@ All configuration lives in `.env`, `.env.example` lists every variable with plac
 
 ## Testing
 
-Running tests requires installing dependencies locally and running Photo Application in standalone mode (disable use of external database and caching)
+Running tests requires installing dependencies locally
+Note: Application runs in standalone mode during tests (no connection to external database or cache)
 
 ```bash
 # 1. Create virtual environment
@@ -128,9 +129,6 @@ python -m venv env
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Enable standalone mode
-$env:STANDALONE_MODE="True"
-
-# 4. Run tests
+# 3. Run tests
 python manage.py test
 ```

@@ -13,11 +13,14 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
+
+TESTING = 'test' in sys.argv
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
@@ -86,7 +89,7 @@ WSGI_APPLICATION = 'photo_application.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-if STANDALONE_MODE:
+if STANDALONE_MODE or TESTING:
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -118,7 +121,7 @@ else:
     AWS_S3_ADDRESSING_STYLE = 'path'
 
 
-if STANDALONE_MODE:
+if STANDALONE_MODE or TESTING:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -189,7 +192,7 @@ MAILERS = {
     },
 }
 
-if STANDALONE_MODE:
+if STANDALONE_MODE or TESTING:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -229,7 +232,7 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'CRITICAL' if TESTING else 'INFO',
     },
 }
 

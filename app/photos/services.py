@@ -1,10 +1,8 @@
 from django.utils.text import slugify
-from django.db import transaction
 from .models import Tag, Photo
 
 class TagService():
     @staticmethod
-    @transaction.atomic
     def assign_tags_to_photo(tags : list[str], photo : Photo):
 
         if not photo.pk:
